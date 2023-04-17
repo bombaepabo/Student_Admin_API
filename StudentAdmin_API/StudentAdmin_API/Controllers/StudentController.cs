@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using StudentAdmin_API.DataModels;
 using StudentAdmin_API.DomainModels;
 using StudentAdmin_API.Repository;
+using Student = StudentAdmin_API.DomainModels.Student;
 
 namespace StudentAdmin_API.Controllers
 {
@@ -26,19 +27,38 @@ namespace StudentAdmin_API.Controllers
             return Ok(mapper.Map<List<DomainModels.Student>>(students));
         }
         [HttpGet]
-        [Route("[Controller]/{studentId:guid}")]
+        [Route("[controller]/{studentId:guid}")]
         public async Task<IActionResult> GetStudentAsync([FromRoute] Guid studentId)
         {
             var student = await studentrepository.GetStudentAsync(studentId);
 
-            if(student == null)
+            if (student == null)
             {
                 return NotFound();
             }
             return Ok(mapper.Map<DomainModels.Student>(student));
         }
+        [HttpPut]
+        [Route("[controller]/{studentId:guid}")]
+        public async Task<IActionResult> UpdateStudentsAsync([FromRoute] Guid studentId,
+            [FromBody] UpdateStudentRequest request)
+        {
+            
+            if(await studentrepository.Exists(studentId))
+            {
+                var updatedStudent = await studentrepository.UpdateStudent(studentId,mapper.Map<DataModels.Student>(request));
+                if(updatedStudent != null)
+                {
+                    return Ok(mapper.Map<Student>(updatedStudent));
+                }
+            }
+           
+                return NotFound();
+    
 
-        
+        }
+
+
 
 
     }
