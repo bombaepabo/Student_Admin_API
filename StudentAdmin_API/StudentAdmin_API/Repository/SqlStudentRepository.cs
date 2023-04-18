@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace StudentAdmin_API.Repository
 {
@@ -12,6 +13,26 @@ namespace StudentAdmin_API.Repository
         public SqlStudentRepository(StudentadminContext context)
         {
             this.context = context;
+        }
+
+        public async Task<Student> AddStudent(Student request)
+        {
+            var student = await this.context.Student.AddAsync(request);
+           await context.SaveChangesAsync();
+            return student.Entity;   
+        }
+
+        public async Task<Student> DeleteStudent(Guid studentId)
+        {
+            var student = await GetStudentAsync(studentId);
+            if (student != null)
+            {
+                context.Student.Remove(student);
+                await context.SaveChangesAsync();
+                return student;
+            }
+            return null;
+
         }
 
         public async Task<bool> Exists(Guid studentId)
@@ -33,6 +54,18 @@ namespace StudentAdmin_API.Repository
         public async Task<List<Student>> GetStudentsAsync()
         {
             return await context.Student.Include(nameof(Gender)).Include(nameof(Address)).ToListAsync();
+        }
+
+        public async Task<bool> UpdateProfileImage(Guid studentId, string profileImageUrl)
+        {
+            var student = await GetStudentAsync(studentId);
+            if (student != null)
+            {
+                student.ProfileImageUrl = profileImageUrl;
+                await context.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
 
         public async Task<Student> UpdateStudent(Guid studentId, Student request)
